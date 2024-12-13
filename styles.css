@@ -18,7 +18,8 @@
 .horizon-line {
     position: absolute;
     top: 50%;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     height: 4px; /* Increased from 2px */
     background-color: #2f3591;
     animation: expandLine 1s ease-out forwards;
@@ -37,7 +38,7 @@
 .rising-sun {
     position: absolute;
     left: 50%;
-    bottom: -100px; /* Increased from -90px to show less of circle */
+    bottom: -110px; /* Increased from -90px to show less of circle */
     transform: translateX(-50%) translateY(100%);
     width: 180px;
     height: 180px; /* Made perfectly circular */
