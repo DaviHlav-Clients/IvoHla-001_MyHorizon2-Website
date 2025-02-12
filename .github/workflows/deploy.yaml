@@ -21,4 +21,4 @@ jobs:
       - name: Deploy Files via rsync
         run: |
           # Exclude the .git folder (and any other files you don't need)
-          rsync -avz --delete --exclude '.git*' ./ username@server_ip:/path/to/website
+          rsync -avz --delete --exclude '.git*' ./ ubuntu@130.162.56.8:/var/www/myhorizon2
