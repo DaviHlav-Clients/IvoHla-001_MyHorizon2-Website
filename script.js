@@ -106,4 +106,31 @@ document.addEventListener('DOMContentLoaded', () => {
             behavior: 'smooth'
         });
     });
+
+    // Hamburger menu functionality
+    const hamburger = document.querySelector('.hamburger');
+    const nav = document.querySelector('.nav-links');
+    
+    hamburger.addEventListener('click', () => {
+        nav.classList.toggle('open');
+    });
+
+    // Mobile nav link smooth scroll with offset adjustment
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElem = document.getElementById(targetId);
+                // Get the fixed nav height
+                const navHeight = document.querySelector('nav.nav-links').offsetHeight;
+                // Calculate destination offset position
+                const targetY = targetElem.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                window.scrollTo({
+                    top: targetY,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
 });

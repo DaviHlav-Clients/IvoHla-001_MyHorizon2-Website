@@ -165,7 +165,7 @@ main {
     opacity: 0;
     transform: translateY(30px);
     transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-    scroll-margin-top: 170px; /* Ensure sections are offset when scrolled to */
+    scroll-margin-top: 170px; /* Desktop offset */
     position: relative;
     overflow: hidden;
 }
@@ -621,4 +621,103 @@ body {
 .scroll-to-top:hover {
     background: #252a73;
     transform: translateY(-2px);
+}
+
+/* Hamburger menu styles */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    position: absolute;
+    right: 20px;
+    top: 65px;
+    z-index: 10;
+}
+
+.hamburger span {
+    width: 100%;
+    height: 3px;
+    background: #2f3591;
+    border-radius: 10px;
+    transition: all 0.3s linear;
+    position: relative;
+    transform-origin: center;
+}
+
+/* Mobile navigation styles */
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex;
+        top: 75px;
+    }
+
+    nav.nav-links {
+        padding: 0;
+        justify-content: center;
+    }
+
+    nav.nav-links a {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
+        width: 100%;
+        text-align: center;
+        padding: 12px 0;
+        transform: none;
+        font-size: 0.6em;
+        transition: opacity 0.3s ease;
+    }
+
+    nav.nav-links.open {
+        padding: 180px 0 20px;
+        background: rgba(255, 255, 255, 0.98);
+    }
+
+    nav.nav-links.open a {
+        opacity: 1;
+        pointer-events: auto;
+        animation: slideIn 0.3s ease-out forwards;
+    }
+
+    nav.nav-links.open .hamburger span:first-child {
+        transform: translateY(11px) rotate(45deg);
+    }
+
+    nav.nav-links.open .hamburger span:nth-child(2) {
+        opacity: 0;
+    }
+
+    nav.nav-links.open .hamburger span:last-child {
+        transform: translateY(-11px) rotate(-45deg);
+    }
+
+    .section {
+        scroll-margin-top: 220px; /* Increased offset for mobile nav bar height */
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark mode mobile nav */
+[data-theme="dark"] .hamburger span {
+    background: #fff;
+}
+
+[data-theme="dark"] nav.nav-links.open {
+    background: rgba(42, 42, 42, 0.98);
 }
