@@ -121,14 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const targetElem = document.getElementById(targetId);
-            // Get the fixed nav height
-            const navHeight = document.querySelector('nav.nav-links').offsetHeight;
-            // Calculate destination offset position
-            const targetY = targetElem.getBoundingClientRect().top + window.pageYOffset - navHeight;
-            window.scrollTo({
-                top: targetY,
-                behavior: 'smooth'
-            });
+            // Allow a small delay to ensure layout is updated in production.
+            setTimeout(() => {
+                // Get the fixed nav height
+                const navHeight = document.querySelector('nav.nav-links').offsetHeight;
+                // Calculate destination offset position
+                const targetY = targetElem.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                window.scrollTo({
+                    top: targetY,
+                    behavior: 'smooth'
+                });
+            }, 50);
         });
     });
 });
