@@ -392,11 +392,11 @@ main {
 
 /* Hero Section Styles */
 .hero-section {
-    min-height: auto;
+    min-height: calc(100vh - 170px - 80px); /* Full viewport minus nav and footer */
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 60px 20px 80px;
+    padding: 80px 20px 60px;
 }
 
 .hero-section .container {
