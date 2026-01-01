@@ -29,19 +29,66 @@ document.addEventListener('DOMContentLoaded', () => {
         const logoContainer = document.querySelector('.logo-container');
         logoContainer.classList.add('animation-complete');
 
-        // Start the content reveal sequence
+        // Initialize scroll-based reveal animations after logo animation
         setTimeout(() => {
-            const sections = document.querySelectorAll('.section');
-            sections.forEach((section, index) => {
-                setTimeout(() => {
-                    section.classList.add('section-visible');
-                }, index * 200); // Stagger each section by 200ms
-            });
-        }, 700); // Start while logo is still transitioning
+            initScrollAnimations();
+        }, 500);
     }, 3000);
 
+    // Scroll-triggered animations using Intersection Observer
+    function initScrollAnimations() {
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -80px 0px',
+            threshold: 0.1
+        };
+
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('section-visible');
+
+                    // Animate child elements with stagger
+                    const animatedChildren = entry.target.querySelectorAll('.animate-on-scroll');
+                    animatedChildren.forEach((child, index) => {
+                        setTimeout(() => {
+                            child.classList.add('animated');
+                        }, index * 100);
+                    });
+
+                    // Unobserve after animation (one-time animation)
+                    sectionObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('.section').forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        // Separate observer for individual elements (cards, items, etc.)
+        const elementObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('element-visible');
+                    elementObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '0px 0px -50px 0px',
+            threshold: 0.1
+        });
+
+        // Observe service items, cards, and other elements
+        document.querySelectorAll('.service-item, .column-card, .scope-card, .principle-item').forEach(el => {
+            elementObserver.observe(el);
+        });
+    }
+
     // Scroll-based active section highlighting
-    const sections = document.querySelectorAll('.section');
+    const sections = document.querySelectorAll('.section[data-nav]');
     const navLinks = document.querySelectorAll('.nav-links a');
 
     function updateActiveSection() {
@@ -58,15 +105,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const documentHeight = document.documentElement.scrollHeight;
         const isAtBottom = (scrollPosition + windowHeight) >= (documentHeight - 50);
 
-        let currentSection = null;
+        let currentNavGroup = null;
 
-        // If at bottom of page, always select the last section (Contact)
+        // If at bottom of page, always select Contact
         if (isAtBottom) {
-            currentSection = sections[sections.length - 1];
+            currentNavGroup = 'contact';
         }
         // If we're at the very top of the page, select Home
         else if (scrollPosition <= 10) {
-            currentSection = document.getElementById('home');
+            currentNavGroup = 'home';
         }
         // Otherwise find which section we're currently in
         else {
@@ -75,15 +122,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sectionBottom = sectionTop + section.offsetHeight;
 
                 if (triggerPoint >= sectionTop && triggerPoint < sectionBottom) {
-                    currentSection = section;
+                    currentNavGroup = section.getAttribute('data-nav');
                 }
             });
         }
 
-        // Update active class on nav links
-        if (currentSection) {
+        // Update active class on nav links based on data-nav group
+        if (currentNavGroup) {
             navLinks.forEach(link => link.classList.remove('active'));
-            const activeLink = document.querySelector(`.nav-links a[href="#${currentSection.id}"]`);
+            const activeLink = document.querySelector(`.nav-links a[href="#${currentNavGroup}"]`);
             if (activeLink) activeLink.classList.add('active');
         }
     }
@@ -104,14 +151,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial call after animations complete
     setTimeout(updateActiveSection, 100);
 
-    // Form submission handling
+    // Form submission via Formspree with AJAX (no redirect)
     const contactForm = document.querySelector('.contact-form');
     if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
+        const originalFormHTML = contactForm.innerHTML;
+
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Add your form submission logic here
-            alert('Thank you for your message! We will get back to you soon.');
-            contactForm.reset();
+
+            const submitBtn = contactForm.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+
+            // Show loading state
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(contactForm.action, {
+                    method: 'POST',
+                    body: new FormData(contactForm),
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // Show success message
+                    contactForm.innerHTML = `
+                        <div class="form-success">
+                            <div class="success-icon">✓</div>
+                            <h3>Message Sent</h3>
+                            <p>Thank you for reaching out. We will get back to you shortly.</p>
+                        </div>
+                    `;
+
+                    // Restore form after 4 seconds
+                    setTimeout(() => {
+                        contactForm.innerHTML = originalFormHTML;
+                    }, 4000);
+                } else {
+                    throw new Error('Form submission failed');
+                }
+            } catch (error) {
+                // Show error, restore button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                alert('There was an error sending your message. Please try again or email us directly.');
+            }
         });
     }
 
@@ -180,6 +266,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Update active section after scroll completes
                 setTimeout(updateActiveSection, 500);
             }, 50);
+        });
+    });
+
+    // CTA button smooth scroll with offset adjustment
+    document.querySelectorAll('.cta-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElem = document.getElementById(targetId);
+
+            if (targetElem) {
+                // Calculate destination offset position
+                const scrollOffset = 150;
+                const targetY = targetElem.getBoundingClientRect().top + window.pageYOffset - scrollOffset;
+                window.scrollTo({
+                    top: Math.max(0, targetY),
+                    behavior: 'smooth'
+                });
+
+                // Update active section after scroll completes
+                setTimeout(updateActiveSection, 500);
+            }
         });
     });
 });
