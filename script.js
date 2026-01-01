@@ -44,27 +44,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('.section');
     const navLinks = document.querySelectorAll('.nav-links a');
 
-    const observerOptions = {
-        root: null,
-        rootMargin: '-50% 0px',
-        threshold: 0
-    };
+    function updateActiveSection() {
+        const scrollPosition = window.scrollY;
 
-    const observerCallback = (entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                // Remove active class from all links
-                navLinks.forEach(link => link.classList.remove('active'));
-                
-                // Add active class to corresponding link
-                const activeLink = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
-                if (activeLink) activeLink.classList.add('active');
-            }
-        });
-    };
+        // Get the offset for scroll-margin-top
+        const scrollOffset = 170;
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    sections.forEach(section => observer.observe(section));
+        // Calculate the trigger point (nav height + a small buffer)
+        const triggerPoint = scrollPosition + scrollOffset + 50;
+
+        // Check if we're at the bottom of the page
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const isAtBottom = (scrollPosition + windowHeight) >= (documentHeight - 50);
+
+        let currentSection = null;
+
+        // If at bottom of page, always select the last section (Contact)
+        if (isAtBottom) {
+            currentSection = sections[sections.length - 1];
+        }
+        // If we're at the very top of the page, select Home
+        else if (scrollPosition <= 10) {
+            currentSection = document.getElementById('home');
+        }
+        // Otherwise find which section we're currently in
+        else {
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionBottom = sectionTop + section.offsetHeight;
+
+                if (triggerPoint >= sectionTop && triggerPoint < sectionBottom) {
+                    currentSection = section;
+                }
+            });
+        }
+
+        // Update active class on nav links
+        if (currentSection) {
+            navLinks.forEach(link => link.classList.remove('active'));
+            const activeLink = document.querySelector(`.nav-links a[href="#${currentSection.id}"]`);
+            if (activeLink) activeLink.classList.add('active');
+        }
+    }
+
+    // Run on scroll with throttling for performance
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        if (scrollTimeout) return;
+        scrollTimeout = setTimeout(() => {
+            updateActiveSection();
+            scrollTimeout = null;
+        }, 10);
+    });
+
+    // Run on resize to handle mobile/desktop switch
+    window.addEventListener('resize', updateActiveSection);
+
+    // Initial call after animations complete
+    setTimeout(updateActiveSection, 100);
 
     // Form submission handling
     const contactForm = document.querySelector('.contact-form');
@@ -105,6 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
             top: 0,
             behavior: 'smooth'
         });
+        // Update active section after scroll completes
+        setTimeout(updateActiveSection, 500);
     });
 
     // Hamburger menu functionality
@@ -121,16 +161,24 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const targetElem = document.getElementById(targetId);
+
+            // Close mobile menu if open
+            if (nav.classList.contains('open')) {
+                nav.classList.remove('open');
+            }
+
             // Allow a small delay to ensure layout is updated in production.
             setTimeout(() => {
-                // Get the fixed nav height
-                const navHeight = document.querySelector('nav.nav-links').offsetHeight;
                 // Calculate destination offset position
-                const targetY = targetElem.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                const scrollOffset = 150;
+                const targetY = targetElem.getBoundingClientRect().top + window.pageYOffset - scrollOffset;
                 window.scrollTo({
-                    top: targetY,
+                    top: Math.max(0, targetY),
                     behavior: 'smooth'
                 });
+
+                // Update active section after scroll completes
+                setTimeout(updateActiveSection, 500);
             }, 50);
         });
     });
